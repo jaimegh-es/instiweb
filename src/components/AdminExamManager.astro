@@ -20,26 +20,10 @@
 
             <div class="form-group">
                 <label>Asignatura:</label>
-                <select name="subject" id="exam-subject" required>
-                    <option value="">Selecciona una asignatura</option>
-                    <option value="Lengua">Lengua</option>
-                    <option value="Gallego">Gallego</option>
-                    <option value="Inglés">Inglés</option>
-                    <option value="Matemáticas">Matemáticas</option>
-                    <option value="Física y Química">Física y Química</option>
-                    <option value="Biología">Biología</option>
-                    <option value="Historia">Historia</option>
-                    <option value="Filosofía">Filosofía</option>
-                    <option value="Educación Física">Educación Física</option>
-                    <option value="Religión/Valores">Religión/Valores</option>
-                    <option value="TIC">TIC</option>
-                    <option value="Economía">Economía</option>
-                    <option value="Cultura Clásica">Cultura Clásica</option>
-                    <option value="Dibujo Técnico">Dibujo Técnico</option>
-                    <option value="Latín">Latín</option>
-                    <option value="Griego">Griego</option>
-                    <option value="Francés">Francés</option>
-                </select>
+                <input type="text" name="subject" id="exam-subject" list="subjects-list" required placeholder="Escribe el nombre de la asignatura" autocomplete="off">
+                <datalist id="subjects-list">
+                    <!-- Filled by JS -->
+                </datalist>
             </div>
 
             <div class="form-group">
@@ -133,11 +117,24 @@
         </div>
     </div>
 
-    <!-- Maintenance Section -->
+    <!-- Mantenimiento -->
     <div class="maintenance-section">
         <h4>Mantenimiento</h4>
         <button id="import-legacy-btn" class="secondary-btn">Importar Exámenes Anteriores</button>
         <p class="hint">Usar solo una vez para cargar los exámenes antiguos.</p>
+    </div>
+
+    <!-- Gestión de Asignaturas -->
+    <div class="subjects-section">
+        <h4>Gestión de Asignaturas</h4>
+        <div class="subject-add-row">
+            <input type="text" id="new-subject-input" placeholder="Nombre de la nueva asignatura">
+            <button type="button" id="add-subject-btn" class="secondary-btn">Añadir</button>
+        </div>
+        <div id="subjects-cards" class="subjects-cards">
+            <!-- Filled by JS -->
+        </div>
+        <p class="hint">Las asignaturas se ofrecen como sugerencia al escribir; también puedes escribir cualquier nombre directamente en el formulario.</p>
     </div>
 
     <!-- Bottom Bar for Actions -->
@@ -173,6 +170,86 @@
 </div>
 
 <style>
+    /* Gestión de Asignaturas */
+    .subjects-section {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+
+    .subjects-section h4 {
+        margin: 0 0 0.75rem;
+        color: #1e293b;
+    }
+
+    .subject-add-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .subject-add-row input {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .subjects-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .subject-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1e293b;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .subject-card:hover {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #b91c1c;
+    }
+
+    .subject-card .card-remove {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        color: transparent;
+        font-size: 1.1rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.2s ease;
+    }
+
+    .subject-card:hover .card-remove {
+        color: #dc2626;
+    }
+
+    .subject-card .card-remove:hover {
+        color: #7f1d1d;
+    }
+
     /* Selection Modal Styles */
     .modal-selection-overlay {
         position: fixed;
@@ -764,7 +841,7 @@
         const draft = {
             id: (document.getElementById('exam-id') as HTMLInputElement).value,
             date: (document.getElementById('exam-date') as HTMLInputElement).value,
-            subject: (document.getElementById('exam-subject') as HTMLSelectElement).value,
+            subject: (document.getElementById('exam-subject') as HTMLInputElement).value,
             title: (document.getElementById('exam-title') as HTMLInputElement).value,
             time: (document.getElementById('exam-time') as HTMLInputElement).value,
             classroom: (document.getElementById('exam-classroom') as HTMLInputElement).value,
@@ -793,7 +870,7 @@
 
             (document.getElementById('exam-id') as HTMLInputElement).value = draft.id || '';
             (document.getElementById('exam-date') as HTMLInputElement).value = draft.date || '';
-            (document.getElementById('exam-subject') as HTMLSelectElement).value = draft.subject || '';
+            (document.getElementById('exam-subject') as HTMLInputElement).value = draft.subject || '';
             (document.getElementById('exam-title') as HTMLInputElement).value = draft.title || '';
             (document.getElementById('exam-time') as HTMLInputElement).value = draft.time || '';
             (document.getElementById('exam-classroom') as HTMLInputElement).value = draft.classroom || 'B1B';
@@ -1019,6 +1096,94 @@
         document.querySelectorAll('.dia').forEach(d => d.classList.remove('selected'));
     }
 
+    // --- GESTIÓN DE ASIGNATURAS ---
+    let subjectsList: string[] = [];
+
+    async function loadSubjects() {
+        try {
+            const res = await fetch('/api/subjects');
+            const data = await res.json();
+            subjectsList = data.subjects || [];
+        } catch (e) {
+            console.error('Error cargando asignaturas', e);
+            subjectsList = [];
+        }
+        renderSubjects();
+    }
+
+    function renderSubjects() {
+        const datalist = document.getElementById('subjects-list');
+        const cards = document.getElementById('subjects-cards');
+        if (!datalist || !cards) return;
+
+        datalist.innerHTML = subjectsList.map(s => `<option value="${s}"></option>`).join('');
+        cards.innerHTML = subjectsList.map(s => `
+            <div class="subject-card" data-subject="${s}" title="Clic para eliminar">
+                ${s}
+                <button type="button" class="card-remove" data-subject="${s}" aria-label="Eliminar ${s}">&times;</button>
+            </div>
+        `).join('');
+
+        cards.querySelectorAll('.subject-card').forEach(card => {
+            card.addEventListener('click', () => removeSubject((card as HTMLElement).dataset.subject || ''));
+        });
+    }
+
+    async function addSubject() {
+        const input = document.getElementById('new-subject-input') as HTMLInputElement;
+        const name = input.value.trim();
+        if (!name) return;
+
+        (window as any).showLoading();
+        try {
+            const res = await fetch('/api/subjects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: name })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                subjectsList = data.subjects;
+                renderSubjects();
+                input.value = '';
+                (window as any).showAlert("Asignatura añadida", "success");
+            } else {
+                (window as any).showAlert("Error al añadir asignatura", "error");
+            }
+        } catch (e) {
+            (window as any).showAlert("Error de conexión", "error");
+        } finally {
+            (window as any).hideLoading();
+        }
+    }
+
+    async function removeSubject(name: string) {
+        if (!name) return;
+        const confirmed = await (window as any).showConfirm(`¿Eliminar la asignatura "${name}" de la lista de sugerencias?`);
+        if (!confirmed) return;
+
+        (window as any).showLoading();
+        try {
+            const res = await fetch('/api/subjects', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: name })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                subjectsList = data.subjects;
+                renderSubjects();
+                (window as any).showAlert("Asignatura eliminada", "success");
+            } else {
+                (window as any).showAlert("Error al eliminar", "error");
+            }
+        } catch (e) {
+            (window as any).showAlert("Error de conexión", "error");
+        } finally {
+            (window as any).hideLoading();
+        }
+    }
+
     (window as any).editExamItem = (id) => {
         (window as any).showLoading();
         
@@ -1031,7 +1196,7 @@
 
             (document.getElementById('exam-id') as HTMLInputElement).value = item.id;
             (document.getElementById('exam-date') as HTMLInputElement).value = item.date;
-            (document.getElementById('exam-subject') as HTMLSelectElement).value = item.subject;
+            (document.getElementById('exam-subject') as HTMLInputElement).value = item.subject;
             (document.getElementById('exam-title') as HTMLInputElement).value = item.title || '';
             (document.getElementById('exam-time') as HTMLInputElement).value = item.time || '';
             (document.getElementById('exam-classroom') as HTMLInputElement).value = item.classroom || 'B1B';
@@ -1196,6 +1361,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     (window as any).showLoading();
     initTipTap();
     await loadExams();
+    await loadSubjects();
     loadDraft();
 
     // Auto-save cada 10 segundos
@@ -1222,6 +1388,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             (window as any).hideLoading();
         });
         document.getElementById('import-legacy-btn')?.addEventListener('click', importLegacyExams);
+
+    document.getElementById('add-subject-btn')?.addEventListener('click', addSubject);
+    document.getElementById('new-subject-input')?.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+            e.preventDefault();
+            addSubject();
+        }
+    });
 
         document.getElementById('bar-edit-btn-exams')?.addEventListener('click', () => {
             if (selectedId) (window as any).editExamItem(selectedId);
