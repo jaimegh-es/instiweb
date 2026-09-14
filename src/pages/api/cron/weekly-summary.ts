@@ -2,9 +2,9 @@ import type { APIRoute } from "astro";
 import { db } from "../../../lib/firebase/server";
 
 export const GET: APIRoute = async ({ request }) => {
-  // Verificar CRON_SECRET para seguridad si se despliega en Vercel
+  // Fail closed: si CRON_SECRET no está configurado, rechazar siempre.
   const authHeader = request.headers.get('authorization');
-  if (import.meta.env.CRON_SECRET && authHeader !== `Bearer ${import.meta.env.CRON_SECRET}`) {
+  if (!import.meta.env.CRON_SECRET || authHeader !== `Bearer ${import.meta.env.CRON_SECRET}`) {
     return new Response("Unauthorized", { status: 401 });
   }
 

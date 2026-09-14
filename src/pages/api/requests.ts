@@ -44,8 +44,9 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
 };
 
 export const GET: APIRoute = async ({ locals }) => {
-  // Optional: Check if admin if we want to restrict full list to admin
-  // But for now it returns all requests.
+  if (!locals.uid || locals.role !== 'admin') {
+    return new Response("Unauthorized", { status: 403 });
+  }
   try {
     const snapshot = await db.collection("requests").orderBy("createdAt", "desc").get();
     const requests = snapshot.docs.map(doc => ({

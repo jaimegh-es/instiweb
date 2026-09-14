@@ -2,6 +2,9 @@ import type { APIRoute } from "astro";
 import { db } from "../../lib/firebase/server";
 
 export const GET: APIRoute = async ({ locals }) => {
+  if (!locals.uid) {
+    return new Response("Unauthorized", { status: 401 });
+  }
   try {
     const doc = await db.collection("config").doc("dashboard").get();
     if (!doc.exists) {

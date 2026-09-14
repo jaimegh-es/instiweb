@@ -64,10 +64,10 @@ function generarDiasMes(año, mes) {
 
 // Generar calendarios para cada mes
 
-const marzo = generarDiasMes(2026, 3);
-const abril = generarDiasMes(2026, 4);
-const mayo = generarDiasMes(2026, 5);
-const junio = generarDiasMes(2026, 6);
+const septiembre = generarDiasMes(2026, 9);
+const octubre = generarDiasMes(2026, 10);
+const noviembre = generarDiasMes(2026, 11);
+const diciembre = generarDiasMes(2026, 12);
 
 // Función para dividir en semanas
 function dividirEnSemanas(dias) {
@@ -79,8 +79,8 @@ function dividirEnSemanas(dias) {
 }
 
 // Cálculo del progreso del curso
-const cursoInicio = new Date("2025-09-11");
-const cursoFin = new Date("2026-06-20");
+const cursoInicio = new Date("2026-09-11");
+const cursoFin = new Date("2027-06-20");
 const hoy = new Date();
 
 const totalDias = Math.ceil((cursoFin.getTime() - cursoInicio.getTime()) / (1000 * 60 * 60 * 24));
@@ -96,7 +96,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
         <div class="section-header">
             <h2 class="section-title">Calendario de Exámenes</h2>
             <div class="header-actions">
-                <p class="section-subtitle">2º y 3º Trimestre</p>
+                <p class="section-subtitle">1er trimestre</p>
                 <div class="button-group">
                     <button id="export-pdf-btn" class="export-btn">
                         <i class="fa-solid fa-file-pdf"></i> Exportar a PDF
@@ -123,7 +123,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
 
         <div class="curso-progreso">
             <div class="progreso-text">
-                <span class="emoji">🎓</span> Ya queda poco
+                <span class="emoji">🎓</span> Progreso
             </div>
             <div class="progreso-grid">
                 {Array.from({ length: totalCuadritos }).map((_, i) => (
@@ -132,7 +132,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
             </div>
             <div class="progreso-stats">
                 <span>{Math.round(porcentajeProgreso)}% completado</span>
-                <span>Curso 2025 - 2026</span>
+                <span>Curso 2026 - 2027</span>
             </div>
         </div>
 
@@ -147,7 +147,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
 
             <div class="meses-grid">
                 <div class="mes">
-                    <h3 class="mes-titulo">Marzo 2026</h3>
+                    <h3 class="mes-titulo">Septiembre 2026</h3>
                     <table class="calendario-tabla">
                         <thead>
                             <tr>
@@ -162,7 +162,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                         </thead>
                         <tbody>
                             {
-                                dividirEnSemanas(marzo).map((semana) => (
+                                dividirEnSemanas(septiembre).map((semana) => (
                                     <tr>
                                         {semana.map((dia) => (
                                             <td
@@ -216,7 +216,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                 </div>
 
                 <div class="mes">
-                    <h3 class="mes-titulo">Abril 2026</h3>
+                    <h3 class="mes-titulo">Octubre 2026</h3>
                     <table class="calendario-tabla">
                         <thead>
                             <tr>
@@ -231,7 +231,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                         </thead>
                         <tbody>
                             {
-                                dividirEnSemanas(abril).map((semana) => (
+                                dividirEnSemanas(octubre).map((semana) => (
                                     <tr>
                                         {semana.map((dia) => (
                                             <td
@@ -285,7 +285,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                 </div>
 
                 <div class="mes">
-                    <h3 class="mes-titulo">Mayo 2026</h3>
+                    <h3 class="mes-titulo">Noviembre 2026</h3>
                     <table class="calendario-tabla">
                         <thead>
                             <tr>
@@ -300,7 +300,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                         </thead>
                         <tbody>
                             {
-                                dividirEnSemanas(mayo).map((semana) => (
+                                dividirEnSemanas(noviembre).map((semana) => (
                                     <tr>
                                         {semana.map((dia) => (
                                             <td
@@ -354,7 +354,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                 </div>
 
                 <div class="mes">
-                    <h3 class="mes-titulo">Junio 2026</h3>
+                    <h3 class="mes-titulo">Diciembre 2026</h3>
                     <table class="calendario-tabla">
                         <thead>
                             <tr>
@@ -369,7 +369,7 @@ const cuadritosRellenos = Math.floor((porcentajeProgreso / 100) * totalCuadritos
                         </thead>
                         <tbody>
                             {
-                                dividirEnSemanas(junio).map((semana) => (
+                                dividirEnSemanas(diciembre).map((semana) => (
                                     <tr>
                                         {semana.map((dia) => (
                                             <td
