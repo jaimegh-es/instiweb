@@ -30,9 +30,9 @@ export default defineConfig({
     AstroPWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '1B Bach | Noticias y examenes',
-        short_name: '1B Bach',
-        description: 'Sitio de noticias y exámenes para 1B Bachillerato',
+        name: '2 Bach A Sardiñeira',
+        short_name: '2bach',
+        description: 'Sitio de noticias y exámenes',
         theme_color: '#2000ad',
         background_color: '#ffffff',
         display: 'standalone',
