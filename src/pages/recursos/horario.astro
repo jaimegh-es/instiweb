@@ -1,6 +1,6 @@
 ---
 import ResourceLayout from '../../layouts/ResourceLayout.astro';
-import { SCHEDULE, SUBJECT_NAMES } from '../../data/schedule';
+import { SCHEDULE } from '../../data/schedule';
 
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 ---
@@ -54,6 +54,11 @@ const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
       </div>
     </div>
   </template>
+
+  <p class="schedule-note">
+    Los bloques de modalidad y optativas se imparten en paralelo: cada alumno
+    asiste únicamente a la materia que le corresponde según su matrícula.
+  </p>
 </ResourceLayout>
 
 <script define:vars={{ SCHEDULE }}>
@@ -84,10 +89,23 @@ const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
         clone.querySelector('.end').textContent = period.end;
         
         const content = clone.querySelector('.period-content');
+
+        if (period.block) {
+          const blockLabel = document.createElement('span');
+          blockLabel.className = 'block-label';
+          blockLabel.textContent = period.block;
+          content.appendChild(blockLabel);
+        }
+
         period.subjects.forEach(sub => {
           const subClone = subjectTemplate.content.cloneNode(true);
           subClone.querySelector('.subject-name').textContent = sub.name;
-          subClone.querySelector('.subject-room').textContent = sub.room;
+          const roomEl = subClone.querySelector('.subject-room');
+          if (sub.room) {
+            roomEl.textContent = sub.room;
+          } else {
+            roomEl.style.display = 'none';
+          }
           subClone.querySelector('.subject-teacher').textContent = sub.teacher;
           content.appendChild(subClone);
         });
@@ -254,6 +272,32 @@ const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
     font-size: 0.95rem;
     color: #64748b;
     font-weight: 500;
+  }
+
+  .block-label {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 0.2rem 0.7rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+
+  .schedule-note {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2000ad;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
   }
 
   .break-label {
