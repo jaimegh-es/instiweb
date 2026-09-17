@@ -8,16 +8,21 @@
         
         <div class="telegram-icon-container">
             <div class="icon-circle">
-                <i class="fab fa-telegram-plane"></i>
+                <i class="fas fa-mobile-screen"></i>
             </div>
         </div>
 
-        <h2>¡Únete al Telegram!</h2>
-        <p>Ya son varios los compañeros y padres que se han unido al Telegram y reciben las últimas noticias, exámenes y eventos sin tener que consultar la pagina. No manda spam ya que es muy esporádico el envío de notificaciones.</p>
+        <h2>¡Bienvenido a La Página!</h2>
+        <p>Instala la app en tu móvil para acceder a todo con un toque, o únete al Telegram para recibir las últimas noticias, exámenes y eventos sin tener que consultar la página. Sin spam, solo avisos importantes.</p>
 
-        <a href="https://t.me/+Itq-KhGnWLZiNTZk" target="_blank" id="join-telegram-btn" class="telegram-btn">
-            <i class="fab fa-telegram"></i> Unirme al Canal
-        </a>
+        <div class="btn-group">
+            <button id="install-pwa-btn" class="pwa-btn" style="display: none;">
+                <i class="fas fa-download"></i> Instalar la App
+            </button>
+            <a href="https://t.me/+Itq-KhGnWLZiNTZk" target="_blank" id="join-telegram-btn" class="telegram-btn">
+                <i class="fab fa-telegram"></i> Unirme al Telegram
+            </a>
+        </div>
         
         <button id="maybe-later-telegram" class="secondary-link">Quizás más tarde</button>
     </div>
@@ -91,14 +96,14 @@
     .icon-circle {
         width: 80px;
         height: 80px;
-        background: #0088cc;
+        background: #2000ad;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 2.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 136, 204, 0.3);
+        box-shadow: 0 10px 15px -3px rgba(32, 0, 173, 0.3);
     }
 
     h2 {
@@ -114,12 +119,18 @@
         margin-bottom: 2rem;
     }
 
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .pwa-btn,
     .telegram-btn {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        background: #0088cc;
         color: white;
         text-decoration: none;
         padding: 14px 28px;
@@ -128,6 +139,23 @@
         font-size: 1.1rem;
         transition: all 0.3s ease;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .pwa-btn {
+        background: #2000ad;
+    }
+
+    .pwa-btn:hover {
+        background: #1a0089;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(32, 0, 173, 0.3);
+    }
+
+    .telegram-btn {
+        background: #0088cc;
     }
 
     .telegram-btn:hover {
@@ -154,13 +182,49 @@
 </style>
 
 <script>
+    let deferredPrompt: any = null;
+
+    // Capturar el evento de instalación de la PWA lo antes posible
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        updateInstallBtnVisibility();
+    });
+
+    function updateInstallBtnVisibility() {
+        const installBtn = document.getElementById('install-pwa-btn');
+        if (!installBtn) return;
+
+        // Ocultar si ya está instalada
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+            || (window.navigator as any).standalone === true;
+        if (isStandalone) {
+            (installBtn as HTMLElement).style.display = 'none';
+            return;
+        }
+
+        if (deferredPrompt) {
+            (installBtn as HTMLElement).style.display = 'flex';
+        } else {
+            // Safari iOS no dispara beforeinstallprompt: mostrar instrucciones
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            if (isIOS) {
+                (installBtn as HTMLElement).style.display = 'flex';
+                installBtn.innerHTML = '<i class="fas fa-square-plus"></i> Compartir → "Añadir a inicio"';
+            }
+        }
+    }
+
     function initTelegramModal() {
         const overlay = document.getElementById('telegram-modal-overlay');
         const closeBtn = document.getElementById('close-telegram-modal');
         const laterBtn = document.getElementById('maybe-later-telegram');
         const joinBtn = document.getElementById('join-telegram-btn');
+        const installBtn = document.getElementById('install-pwa-btn') as HTMLButtonElement | null;
 
         if (!overlay) return;
+
+        updateInstallBtnVisibility();
 
         // Verificar si ya se mostró o se unió
         const hasJoinedOrDismissed = localStorage.getItem('telegram-modal-dismissed');
@@ -184,6 +248,26 @@
             // Un valor muy alto para que no vuelva a aparecer (un año)
             localStorage.setItem('telegram-modal-dismissed', (new Date().getTime() + (365 * 24 * 60 * 60 * 1000)).toString());
         };
+
+        // Instalación de la PWA
+        installBtn?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    permanentDismiss();
+                }
+                deferredPrompt = null;
+            } else {
+                // Fallback: instrucciones para navegadores sin beforeinstallprompt
+                alert('Para instalar la app, usa el menú de tu navegador y elige "Añadir a pantalla de inicio".');
+            }
+        });
+
+        // Ocultar el botón cuando la app se instala
+        window.addEventListener('appinstalled', () => {
+            if (installBtn) installBtn.style.display = 'none';
+        });
 
         closeBtn?.addEventListener('click', dismiss);
         laterBtn?.addEventListener('click', dismiss);

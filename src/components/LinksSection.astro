@@ -1,23 +1,36 @@
 ---
 // src/components/LinksSection.astro
-const mdResources = Object.values(import.meta.glob('../pages/recursos/*.md', { eager: true }));
+const mdResources = Object.entries(import.meta.glob('../pages/recursos/*.md', { eager: true })).map(([path, res]: any) => ({
+  ...res,
+  slug: path.split('/').pop().replace('.md', '')
+}));
 const astroResources = Object.values(import.meta.glob('../pages/recursos/*.astro', { eager: true }));
 
 // Mapping for .astro files that don't have frontmatter
-const astroMetadata = {
+const astroMetadata: Record<string, { title: string; description: string; icon: string }> = {
   'horario': {
     title: 'Horario de clases',
-    description: '¡No te pierdas las clases! Consulta el horario oficial actualizado.'
+    description: '¡No te pierdas las clases! Consulta el horario oficial actualizado.',
+    icon: 'fa-clock'
   },
   'calendarioescolar': {
     title: 'Calendario Escolar',
-    description: 'Mantente al tanto de los festivos y días no lectivos del curso.'
+    description: 'Mantente al tanto de los festivos y días no lectivos del curso.',
+    icon: 'fa-calendar-days'
   },
   'aplazaex': {
     title: 'Derecho a Exámenes',
-    description: 'Tus derechos ante huelgas: aplazamientos y normativa vigente.'
+    description: 'Tus derechos ante huelgas: aplazamientos y normativa vigente.',
+    icon: 'fa-scale-balanced'
   },
+};
 
+// Iconos por slug de los .md (Font Awesome)
+const mdIcons: Record<string, string> = {
+  'aplazo-examen': 'fa-file-signature',
+  'beber-agua': 'fa-glass-water',
+  'convocamoshuelga': 'fa-bullhorn',
+  'ejemplo-guia': 'fa-book-open',
 };
 
 // Enlaces externos manuales
@@ -26,35 +39,93 @@ const externalLinks = [
     url: 'https://www.edu.xunta.gal/centros/iessardineira/system/files/u160/curso2025_26/directiva/NOF%20actualizado%202025_26.pdf',
     title: 'Normas de organización y funcionamiento (NOF)',
     description: 'Normativa vigente.',
-    isExternal: true
+    icon: 'fa-file-pdf'
   },
   {
     url: 'https://www.edu.xunta.gal/centros/iessardineira/system/files/u2/curso2024_25/directiva/Plan%20de%20convivencia%20IES%20A%20Sardin%CC%83eira.pdf',
     title: 'Plan de convivencia',
     description: 'Que modifica el NOF.',
-    isExternal: true
+    icon: 'fa-handshake'
   }
 ];
 
-const allResources = [
+interface Resource {
+  url: string;
+  title: string;
+  description: string;
+  icon: string;
+  isExternal: boolean;
+}
+
+interface Category {
+  name: string;
+  icon: string;
+  resources: Resource[];
+}
+
+// URLs de recursos internos
+const internalResources: Resource[] = [
   ...mdResources.map((res: any) => ({
     url: res.url,
     title: res.frontmatter?.title || 'Recurso',
     description: res.frontmatter?.description || 'Haz clic para leer más sobre este recurso.',
+    icon: mdIcons[res.slug] || 'fa-file-lines',
     isExternal: false
   })),
   ...astroResources.map((res: any) => {
     const filename = res.file.split('/').pop().replace('.astro', '');
-    const meta = astroMetadata[filename] || { title: filename, description: 'Recurso del centro' };
+    const meta = astroMetadata[filename] || { title: filename, description: 'Recurso del centro', icon: 'fa-file-lines' };
     return {
       url: `/recursos/${filename}`,
       title: meta.title,
       description: meta.description,
+      icon: meta.icon,
       isExternal: false
     };
   }),
-  ...externalLinks
-].filter(res => !res.url?.includes('ejemplo-guia')); 
+];
+
+const allInternal = [
+  ...internalResources,
+  ...externalLinks.map(l => ({ ...l, isExternal: true }))
+].filter(res => !res.url?.includes('ejemplo-guia'));
+
+// Categorías: asignar cada recurso por su url
+const categoryDefs: { name: string; icon: string; urls: string[] }[] = [
+  {
+    name: 'Horarios y calendario',
+    icon: 'fa-calendar-days',
+    urls: ['/recursos/horario', '/recursos/calendarioescolar']
+  },
+  {
+    name: 'Derechos del alumnado',
+    icon: 'fa-scale-balanced',
+    urls: ['/recursos/aplazo-examen', '/recursos/convocamoshuelga', '/recursos/beber-agua']
+  },
+  {
+    name: 'Documentación del centro',
+    icon: 'fa-folder-open',
+    urls: externalLinks.map(l => l.url)
+  },
+];
+
+const assigned = new Set<string>();
+const categories: Category[] = categoryDefs
+  .map(cat => {
+    const resources = allInternal.filter(r => {
+      const match = cat.urls.some(u => r.url.includes(u));
+      if (match) assigned.add(r.url);
+      return match;
+    });
+    return { name: cat.name, icon: cat.icon, resources };
+  })
+  .filter(cat => cat.resources.length > 0);
+
+// Recursos sin categoría
+const rest = allInternal.filter(r => !assigned.has(r.url));
+if (rest.length > 0) {
+  categories.push({ name: 'Otros recursos', icon: 'fa-ellipsis', resources: rest });
+}
 ---
 
 <section class="links-section" id="links">
@@ -62,25 +133,34 @@ const allResources = [
     <div class="section-header">
       <h2 class="section-title">Recursos de interés</h2>
     </div>
-    
-    <div class="links-grid">
-      {allResources.map(resource => (
-        <a 
-          href={resource.url} 
-          class="link-card" 
-          target={resource.isExternal ? "_blank" : undefined}
-          rel={resource.isExternal ? "noopener noreferrer" : undefined}
-        >
-          <h3>{resource.title}</h3>
-          <p>{resource.description}</p>
-          <span>{resource.isExternal ? 'Visitar sitio' : 'Leer más'} →</span>
-        </a>
-      ))}
-    </div>
+
+    {categories.map(category => (
+      <div class="category">
+        <div class="category-header">
+          <span class="category-icon"><i class={`fas ${category.icon}`}></i></span>
+          <h3>{category.name}</h3>
+        </div>
+        <div class="links-grid">
+          {category.resources.map(resource => (
+            <a
+              href={resource.url}
+              class="link-card"
+              target={resource.isExternal ? "_blank" : undefined}
+              rel={resource.isExternal ? "noopener noreferrer" : undefined}
+            >
+              <span class="card-icon"><i class={`fas ${resource.icon}`}></i></span>
+              <div class="card-text">
+                <h3>{resource.title}</h3>
+                <p>{resource.description}</p>
+              </div>
+              <i class="fas fa-chevron-right card-arrow"></i>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
   </div>
 </section>
-
-
 
 <style>
   .links-section {
@@ -92,11 +172,11 @@ const allResources = [
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
-    text-align: center;
   }
 
   .section-header {
-    margin-bottom: 60px;
+    margin-bottom: 48px;
+    text-align: center;
   }
 
   .section-title {
@@ -108,178 +188,153 @@ const allResources = [
     background-clip: text;
   }
 
-  /* Perplexity Comet Banner Styles */
-  :global(.comet-banner) {
+  .category {
+    margin-bottom: 48px;
+  }
+
+  .category:last-child {
+    margin-bottom: 0;
+  }
+
+  .category-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-    padding: 40px 52px;
-    margin: 40px 0 56px;
-    background-image:
-      linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-      url("https://framerusercontent.com/images/zDO0ZxFXrxadSzqhNFpWxDOA74.png?width=1932&height=1288");
-    background-size: cover;
-    background-position: center;
-    border-radius: 24px;
-    text-decoration: none;
-    color: white !important;
-    text-align: left;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-left: 4px;
   }
 
-  :global(.comet-banner:hover) {
-    transform: translateY(-4px);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  :global(.comet-content) {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-  }
-
-  :global(.comet-logo) {
-    width: 60px;
-    height: 60px;
+  .category-icon {
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 16px;
-    flex-shrink: 0;
-    padding: 12px;
+    background: #2000ad;
     color: white;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  :global(.comet-logo svg) {
-    width: 36px;
-    height: 36px;
-    display: block;
-  }
-
-  :global(.comet-text h3) {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    color: white !important;
-    letter-spacing: -0.02em;
-  }
-
-  :global(.comet-text p) {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.85) !important;
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  :global(.comet-action) {
-    background: white;
-    color: #000 !important;
-    padding: 14px 28px;
-    border-radius: 99px;
-    font-weight: 600;
+    border-radius: 12px;
     font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
   }
 
-  :global(.comet-banner:hover .comet-action) {
-    transform: scale(1.05);
-    background: #ffffff;
-    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
-  }
-
-  @media (max-width: 992px) {
-    :global(.comet-banner) {
-      padding: 32px 40px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    :global(.comet-banner) {
-      flex-direction: column;
-      text-align: center;
-      padding: 40px 32px;
-      gap: 32px;
-      margin-bottom: 40px;
-    }
-
-    :global(.comet-content) {
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    :global(.comet-text h3) {
-      font-size: 1.4rem;
-    }
-
-    :global(.comet-text p) {
-      font-size: 1rem;
-    }
-
-    :global(.comet-action) {
-      width: 100%;
-      text-align: center;
-    }
+  .category-header h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
   }
 
   .links-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
   }
 
   .link-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
     background: white;
     border-radius: 16px;
-    padding: 32px;
-    text-align: left;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    padding: 20px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.25s ease;
     text-decoration: none;
     color: inherit;
   }
 
   .link-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(32, 0, 173, 0.12);
+    border-color: rgba(32, 0, 173, 0.2);
+  }
+
+  .link-card:active {
+    transform: scale(0.98);
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: #2000ad;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .card-text {
+    flex: 1;
+    min-width: 0;
   }
 
   .link-card h3 {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #1f2937;
-    margin-bottom: 12px;
+    margin: 0 0 4px 0;
   }
 
   .link-card p {
     color: #64748b;
-    line-height: 1.6;
-    margin-bottom: 20px;
+    line-height: 1.5;
+    margin: 0;
+    font-size: 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .link-card span {
+  .card-arrow {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: transform 0.25s ease, color 0.25s ease;
+  }
+
+  .link-card:hover .card-arrow {
     color: #2000ad;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
+    transform: translateX(4px);
   }
 
-  .link-card:hover span {
-    color: #002a80;
-    transform: translateX(4px);
+  @media (max-width: 768px) {
+    .links-section {
+      padding: 60px 0;
+    }
+
+    .container {
+      padding: 0 16px;
+    }
+
+    .section-title {
+      font-size: 2rem;
+    }
+
+    .links-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* Tarjetas grandes y cómodas para tocar en móvil */
+    .link-card {
+      padding: 18px 16px;
+      min-height: 72px;
+      border-radius: 14px;
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      font-size: 1.1rem;
+    }
+
+    .link-card h3 {
+      font-size: 1.05rem;
+    }
   }
 </style>
