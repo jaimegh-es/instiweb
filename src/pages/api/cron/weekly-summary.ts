@@ -45,7 +45,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // Formatear mensaje
-    let message = `📚 <b>RESUMEN SEMANAL DE EXÁMENES</b> 📚\n`;
+    let message = `📚 <b>SE VIENEN EXÁMENES! Esta semana:</b> 📚\n`;
     message += `<i>Semana del ${nextMonday.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</i>\n\n`;
 
     exams.forEach((ex, index) => {
@@ -56,8 +56,8 @@ export const GET: APIRoute = async ({ request }) => {
       message += `   📍 Aula: ${ex.classroom || 'B1B'}\n\n`;
     });
 
-    const PRODUCTION_DOMAIN = 'https://1bach.vercel.app';
-    message += `🔗 <a href="${PRODUCTION_DOMAIN}/">Ir a la web oficial</a>`;
+    const PRODUCTION_DOMAIN = 'https://2bach.vercel.app';
+    message += `🔗 <a href="${PRODUCTION_DOMAIN}/">Ver más en la web</a>`;
 
     // Enviar a Telegram
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

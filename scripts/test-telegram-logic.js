@@ -1,5 +1,5 @@
 
-const PRODUCTION_DOMAIN = 'https://1bach.vercel.app';
+const PRODUCTION_DOMAIN = 'https://2bach.vercel.app';
 
 function transformLink(link) {
     let finalLink = link || '/';
@@ -18,25 +18,25 @@ const tests = [
     {
         name: "Noticia con path relativo",
         input: "/noticias/12345",
-        expectedLink: "https://1bach.vercel.app/noticias/12345",
+        expectedLink: "https://2bach.vercel.app/noticias/12345",
         expectedButton: "Leer noticia completa"
     },
     {
         name: "Examen sin link (undefined)",
         input: undefined,
-        expectedLink: "https://1bach.vercel.app/",
+        expectedLink: "https://2bach.vercel.app/",
         expectedButton: "Ir a la web oficial"
     },
     {
         name: "Link de localhost (Vercel local)",
         input: "http://localhost:4321/dashboard",
-        expectedLink: "https://1bach.vercel.app/dashboard",
+        expectedLink: "https://2bach.vercel.app/dashboard",
         expectedButton: "Ir a la web oficial"
     },
     {
         name: "Link de despliegue de Vercel (peligroso)",
         input: "https://1bach-git-main-jaime.vercel.app/dashboard",
-        expectedLink: "https://1bach.vercel.app/dashboard",
+        expectedLink: "https://2bach.vercel.app/dashboard",
         expectedButton: "Ir a la web oficial"
     }
 ];

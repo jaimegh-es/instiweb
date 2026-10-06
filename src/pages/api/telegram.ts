@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const { title, subtitle, image, link, type } = await request.json();
 
-    const PRODUCTION_DOMAIN = 'https://1bach.vercel.app';
+    const PRODUCTION_DOMAIN = 'https://2bach.vercel.app';
     
     // Función para escapar HTML básico de Telegram
     const escapeHTML = (text: string) => text

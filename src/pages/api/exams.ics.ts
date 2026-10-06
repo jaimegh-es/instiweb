@@ -95,7 +95,7 @@ export const GET: APIRoute = async ({ request }) => {
       ].filter(Boolean).map(line => escapeText(line)).join("\\n");
 
       icsLines.push("BEGIN:VEVENT");
-      icsLines.push(`UID:${id}@1bach.vercel.app`);
+      icsLines.push(`UID:${id}@2bach.vercel.app`);
       icsLines.push(`DTSTAMP:${stamp}`);
       icsLines.push(`DTSTART:${startStr}`); 
       icsLines.push(`DTEND:${endStr}`);
